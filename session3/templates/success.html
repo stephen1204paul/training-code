@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Sent - Session 3</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="success-page">
+    <div class="success-container">
+        <h1>✅</h1>
+        <h2>Message Received!</h2>
+        <p>Thanks <strong>{{ name }}</strong>!</p>
+        <div class="info">
+            <p>We'll contact you at:<br><strong>{{ email }}</strong></p>
+        </div>
+        <p style="font-size: 14px; color: #999;">
+            Submitted at {{ timestamp }}
+        </p>
+        <a href="/">Send Another Message</a>
+    </div>
+</body>
+</html>

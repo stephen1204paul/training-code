@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Messages - Session 3</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="messages-page">
+    <div class="messages-container">
+        <h1>📨 All Submitted Messages</h1>
+        <p><strong>Total Messages:</strong> {{ message_count }}</p>
+        <div class="content">{{ content|safe }}</div>
+        <div class="footer">
+            <a href="/">Submit New Message</a>
+            <a href="/health">Health Check</a>
+        </div>
+    </div>
+</body>
+</html>

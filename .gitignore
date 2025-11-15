@@ -1,3 +1,7 @@
 *.zip
 
 _pycache__/
+
+.claude
+
+CLAUDE.md
