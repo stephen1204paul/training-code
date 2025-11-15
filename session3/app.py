@@ -1,5 +1,5 @@
 """
-Flask Contact Form Application
+Flask Contact Form Application for session 2
 Session 3: Virtual Machines & Cloud Compute
 A simple web application demonstrating form handling and file I/O
 """
