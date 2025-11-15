@@ -1,0 +1,16 @@
+service,daily_cost
+VM-Web-1,3.20
+VM-Web-2,3.20
+VM-Database,8.50
+Cloud-Storage-US,1.20
+Cloud-Storage-EU,1.35
+Load-Balancer,2.10
+CDN-Service,0.85
+Backup-Service,0.60
+Monitoring,0.45
+Security-Firewall,1.80
+API-Gateway,1.25
+Cache-Service,2.75
+Email-Service,0.30
+DNS-Service,0.15
+VPN-Gateway,4.20

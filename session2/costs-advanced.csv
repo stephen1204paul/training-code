@@ -1,0 +1,16 @@
+service,category,region,daily_cost,monthly_budget
+VM-Web-1,Compute,us-east,3.20,100
+VM-Web-2,Compute,us-east,3.20,100
+VM-Database,Compute,us-east,8.50,200
+Cloud-Storage-US,Storage,us-east,1.20,40
+Cloud-Storage-EU,Storage,eu-west,1.35,40
+Load-Balancer,Network,us-east,2.10,70
+CDN-Service,Network,global,0.85,30
+Backup-Service,Storage,us-east,0.60,20
+Monitoring,Management,global,0.45,15
+Security-Firewall,Security,us-east,1.80,60
+API-Gateway,Compute,us-east,1.25,40
+Cache-Service,Database,us-east,2.75,90
+Email-Service,Application,global,0.30,10
+DNS-Service,Network,global,0.15,5
+VPN-Gateway,Security,us-east,4.20,150

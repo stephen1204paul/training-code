@@ -1,0 +1,6 @@
+service,daily_cost
+VM-1,2.50
+VM-2,2.50
+Storage,1.00
+Database,5.00
+Load-Balancer,1.50

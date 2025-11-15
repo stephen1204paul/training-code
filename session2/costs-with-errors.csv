@@ -1,0 +1,9 @@
+service,daily_cost
+VM-1,2.50
+VM-2,3.20
+Storage,invalid
+Database,5.00
+Load-Balancer,
+Cache,2.75
+API-Gateway,1.25
+Monitoring,0.45

@@ -1,0 +1,7 @@
+# Dummy GCP Cost Data (CSV-like format)
+# service,region,usage_type,cost_usd
+Compute Engine,us-central1,n1-standard-4,120.50
+Cloud Storage,europe-west1,Standard Storage,45.30
+BigQuery,us-east1,Query Data Processed,78.90
+Cloud SQL,asia-southeast1,db-f1-micro,25.75
+Pub/Sub,us-west1,Message Delivery,12.40
