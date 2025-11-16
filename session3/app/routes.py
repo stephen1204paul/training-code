@@ -2,11 +2,11 @@
 Route handlers for the Flask Contact Form Application
 """
 
-from flask import Blueprint, request, render_template
+from flask import Blueprint, request, render_template, current_app
 from datetime import datetime
 import os
 
-from .utils import get_message_count, save_message
+from .utils import get_message_count, save_message, get_all_messages, format_messages_for_display
 
 # Create a Blueprint for routes
 main = Blueprint('main', __name__)
@@ -20,7 +20,7 @@ def home():
 
 @main.route('/submit', methods=['POST'])
 def submit():
-    """Process form submission and save to file"""
+    """Process form submission and save to storage"""
     try:
         # Get form data
         name = request.form.get('name', '').strip()
@@ -36,8 +36,13 @@ def submit():
         # Generate timestamp
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        # Save to file
-        save_message(name, email, message, timestamp)
+        # Save to storage (Supabase or file)
+        success = save_message(name, email, message, timestamp)
+
+        if not success:
+            return render_template('error.html',
+                                 error_title='Server Error',
+                                 error_message='Failed to save message. Please try again.'), 500
 
         # Return success page
         return render_template('success.html',
@@ -55,14 +60,15 @@ def submit():
 def view_messages():
     """View all submitted messages"""
     try:
-        if not os.path.exists('messages.txt'):
+        # Get messages from storage
+        messages = get_all_messages()
+
+        # Check if no messages exist
+        if not messages or (isinstance(messages, list) and len(messages) == 0):
             return render_template('no_messages.html')
 
-        with open('messages.txt', 'r', encoding='utf-8') as f:
-            content = f.read()
-
-        # Convert plain text to HTML with formatting
-        html_content = content.replace('\n', '<br>').replace('='*50, '<hr>')
+        # Format messages for display
+        html_content = format_messages_for_display(messages)
 
         return render_template('messages.html',
                              message_count=get_message_count(),
@@ -77,9 +83,24 @@ def view_messages():
 @main.route('/health')
 def health_check():
     """Simple health check endpoint"""
-    return {
+    use_database = current_app.config.get('USE_DATABASE', False)
+
+    health_data = {
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
         'total_messages': get_message_count(),
-        'message_file_exists': os.path.exists('messages.txt')
+        'storage_type': 'database' if use_database else 'file',
     }
+
+    # Add file existence check only if not using database
+    if not use_database:
+        health_data['message_file_exists'] = os.path.exists('messages.txt')
+    else:
+        # Add database info if using database
+        db_uri = current_app.config.get('SQLALCHEMY_DATABASE_URI', '')
+        if 'postgresql' in db_uri:
+            health_data['database_type'] = 'postgresql'
+        elif 'sqlite' in db_uri:
+            health_data['database_type'] = 'sqlite'
+
+    return health_data

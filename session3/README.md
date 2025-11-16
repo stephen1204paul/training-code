@@ -2,15 +2,17 @@
 
 ## Session 3: Virtual Machines & Cloud Compute
 
-A professionally structured Flask web application demonstrating best practices in web development, form handling, and file I/O operations. This project showcases a production-ready architecture with proper separation of concerns.
+A professionally structured Flask web application demonstrating best practices in web development, form handling, and cloud database integration. This project showcases a production-ready architecture with proper separation of concerns and supports both file-based and Supabase (PostgreSQL) storage.
 
 ## Table of Contents
 
+- [Quick Start Guide](#quick-start-guide)
 - [Overview](#overview)
 - [Learning Objectives](#learning-objectives)
 - [Prerequisites](#prerequisites)
 - [Project Structure](#project-structure)
 - [Installation](#installation)
+- [Database Setup & Migrations](#database-setup--migrations)
 - [Running the Application](#running-the-application)
 - [Using the Application](#using-the-application)
 - [API Endpoints](#api-endpoints)
@@ -19,19 +21,117 @@ A professionally structured Flask web application demonstrating best practices i
 - [Troubleshooting](#troubleshooting)
 - [Deployment](#deployment)
 
+## Quick Start Guide
+
+### Option 1: SQLite (Simplest - 5 Minutes)
+
+```bash
+# 1. Navigate to project
+cd training-code/session3
+
+# 2. Create virtual environment
+python3 -m venv venv
+
+# 3. Activate virtual environment
+source venv/bin/activate  # macOS/Linux
+# OR
+venv\Scripts\activate     # Windows
+
+# 4. Install dependencies
+pip install -r requirements.txt
+
+# 5. Configure for SQLite
+cp .env.example .env
+# Edit .env and set:
+# USE_DATABASE=true
+# DATABASE_URL=sqlite:///messages.db
+
+# 6. Set Flask app
+export FLASK_APP=app.py   # macOS/Linux
+# OR
+set FLASK_APP=app.py      # Windows
+
+# 7. Initialize database
+flask db init
+flask db migrate -m "Initial migration"
+flask db upgrade
+
+# 8. Run the application
+python app.py
+
+# Visit http://localhost:8000
+```
+
+### Option 2: Supabase PostgreSQL (Production-Ready)
+
+```bash
+# 1-4. Same as Option 1 (navigate, create venv, activate, install)
+cd training-code/session3
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 5. Get Supabase connection string
+# - Go to supabase.com → Your Project
+# - Settings → Database → Connection String
+# - Select "Session" mode → URI tab
+# - Copy the connection string
+
+# 6. Configure for Supabase
+cp .env.example .env
+# Edit .env and set:
+# USE_DATABASE=true
+# DATABASE_URL=postgresql+psycopg://postgres.xxxxx:[PASSWORD]@aws-0-region.pooler.supabase.com:6543/postgres
+
+# 7. Set Flask app
+export FLASK_APP=app.py
+
+# 8. Initialize database & run migrations
+flask db init
+flask db migrate -m "Initial migration"
+flask db upgrade
+
+# 9. Run the application
+python app.py
+
+# Visit http://localhost:8000
+```
+
+### Option 3: File-Based Storage (No Database)
+
+```bash
+# 1-4. Same setup as above
+cd training-code/session3
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 5. Configure for file storage
+cp .env.example .env
+# Edit .env and set:
+# USE_DATABASE=false
+
+# 6. Run directly (no migrations needed)
+python app.py
+
+# Visit http://localhost:8000
+```
+
 ## Overview
 
 This application provides a simple yet robust contact form that:
 - Accepts user submissions (name, email, message)
 - Validates input data
-- Stores messages in a text file
+- Stores messages in **either** a text file or Supabase database
 - Displays all submitted messages
 - Provides a health check endpoint for monitoring
+- Supports seamless switching between storage backends
 
 **Key Technologies:**
 - Python 3.x
 - Flask 3.0.0 (Web Framework)
 - Jinja2 (Template Engine)
+- Supabase (PostgreSQL Database - Optional)
 - HTML5 & CSS3
 
 ## Learning Objectives
@@ -49,7 +149,13 @@ By the end of this session, you will understand:
    - Configuration management
    - Template inheritance
 
-3. **Cloud Deployment Readiness**
+3. **Cloud Database Integration**
+   - Setting up Supabase (PostgreSQL)
+   - Abstracting storage layers
+   - Switching between storage backends
+   - Database operations (CRUD)
+
+4. **Cloud Deployment Readiness**
    - Environment-specific configurations
    - Health check endpoints
    - Logging and monitoring setup
@@ -80,12 +186,21 @@ session3/
 ├── app.py                      # Application entry point
 ├── config.py                   # Configuration classes for different environments
 ├── requirements.txt            # Python dependencies
-├── messages.txt               # Generated file (stores form submissions)
+├── .env.example               # Example environment variables
+├── .gitignore                 # Git ignore file
+├── MIGRATIONS.md              # Complete database migrations guide
+├── messages.txt               # Generated file (file-based storage)
 │
 ├── app/                       # Main application package
-│   ├── __init__.py           # App factory function
+│   ├── __init__.py           # App factory function (initializes SQLAlchemy & Migrate)
+│   ├── models.py             # SQLAlchemy database models
 │   ├── routes.py             # Route handlers (controllers)
 │   └── utils.py              # Utility functions (message handling)
+│
+├── migrations/                # Database migrations (generated by Flask-Migrate)
+│   ├── versions/             # Migration version files
+│   ├── alembic.ini          # Alembic configuration
+│   └── env.py               # Migration environment
 │
 ├── templates/                 # Jinja2 HTML templates (views)
 │   ├── base.html             # Base template with common structure
@@ -106,9 +221,13 @@ session3/
 |------|---------|
 | `app.py` | Main entry point that initializes and runs the Flask application |
 | `config.py` | Contains configuration classes for dev/prod/test environments |
-| `app/__init__.py` | Application factory that creates and configures the Flask app |
+| `app/__init__.py` | Application factory that creates and configures the Flask app with SQLAlchemy |
+| `app/models.py` | SQLAlchemy ORM models (Message model for database) |
 | `app/routes.py` | Defines all URL routes and their handler functions |
-| `app/utils.py` | Helper functions for message storage and retrieval |
+| `app/utils.py` | Helper functions for message storage and retrieval (supports both file and database) |
+| `migrations/` | Database migration files managed by Flask-Migrate |
+| `MIGRATIONS.md` | Complete guide for database migrations and setup |
+| `.env.example` | Template for environment variables configuration |
 | `templates/*.html` | HTML templates using Jinja2 syntax |
 | `static/css/style.css` | Cascading styles for the application |
 
@@ -143,6 +262,10 @@ pip install -r requirements.txt
 This will install:
 - Flask 3.0.0 - Web framework
 - Werkzeug 3.0.1 - WSGI utilities
+- Flask-SQLAlchemy 3.1.1 - ORM for database operations
+- Flask-Migrate 4.0.5 - Database migrations (Alembic wrapper)
+- python-dotenv 1.0.0 - Environment variable loader
+- psycopg 3.2.12 - PostgreSQL adapter (for Supabase/PostgreSQL)
 
 ### Step 4: Verify Installation
 
@@ -150,7 +273,123 @@ This will install:
 pip list
 ```
 
-You should see Flask and Werkzeug in the list.
+You should see Flask, SQLAlchemy, Flask-Migrate, and psycopg in the list.
+
+## Database Setup & Migrations
+
+The application supports three storage options:
+- **File-based storage** - Messages stored in `messages.txt`
+- **SQLite** - Local database file (messages.db)
+- **PostgreSQL** - Supabase or local PostgreSQL database
+
+### Understanding Migrations
+
+This app uses **Flask-Migrate** for database schema management:
+- ✅ Version-controlled database changes
+- ✅ Team collaboration on schema
+- ✅ Safe rollback capabilities
+- ✅ Automated schema updates
+
+For complete migration guide, see [MIGRATIONS.md](MIGRATIONS.md)
+
+### Quick Database Setup
+
+#### Option A: SQLite (Simplest)
+
+```bash
+# 1. Configure .env
+cp .env.example .env
+
+# Edit .env:
+USE_DATABASE=true
+DATABASE_URL=sqlite:///messages.db
+
+# 2. Set Flask app
+export FLASK_APP=app.py  # macOS/Linux
+set FLASK_APP=app.py     # Windows
+
+# 3. Run migrations
+flask db init
+flask db migrate -m "Initial migration"
+flask db upgrade
+```
+
+#### Option B: Supabase PostgreSQL
+
+```bash
+# 1. Get Supabase connection string
+# - Go to supabase.com → Your Project
+# - Settings → Database → Connection String
+# - Select "Session" mode → URI tab
+# - Copy the connection string
+
+# 2. Configure .env
+cp .env.example .env
+
+# Edit .env:
+USE_DATABASE=true
+DATABASE_URL=postgresql+psycopg://postgres.xxxxx:[PASSWORD]@aws-0-region.pooler.supabase.com:6543/postgres
+
+# 3. Set Flask app
+export FLASK_APP=app.py
+
+# 4. Run migrations
+flask db init
+flask db migrate -m "Initial migration"
+flask db upgrade
+```
+
+#### Option C: File Storage (No Database)
+
+```bash
+# Configure .env:
+USE_DATABASE=false
+
+# No migrations needed - just run the app
+python app.py
+```
+
+### Common Migration Commands
+
+```bash
+# Check current migration version
+flask db current
+
+# View migration history
+flask db history
+
+# Upgrade to latest migration
+flask db upgrade
+
+# Rollback one migration
+flask db downgrade
+
+# Create new migration after model changes
+flask db migrate -m "Description of changes"
+```
+
+### Switching Storage Backends
+
+Simply update your `.env` file:
+
+**Use SQLite:**
+```env
+USE_DATABASE=true
+DATABASE_URL=sqlite:///messages.db
+```
+
+**Use PostgreSQL/Supabase:**
+```env
+USE_DATABASE=true
+DATABASE_URL=postgresql+psycopg://...
+```
+
+**Use File Storage:**
+```env
+USE_DATABASE=false
+```
+
+No code changes required!
 
 ## Running the Application
 
